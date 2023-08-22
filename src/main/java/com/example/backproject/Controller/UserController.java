@@ -4,6 +4,7 @@ package com.example.backproject.Controller;
 import com.example.backproject.Domain.AuthenticationBean;
 import com.example.backproject.Domain.Reservation_film;
 import com.example.backproject.ServiceImplimentation.PersonServiceImpl;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(value = "/api")
+@SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
 
     @Autowired
@@ -27,7 +29,7 @@ public class UserController {
     public AuthenticationBean login(){
         return new AuthenticationBean("nada","pwd");
     }
-    @GetMapping("get_All_Reservation")
+    @GetMapping("/get_All_Reservation")
 
     public List<Reservation_film> getReservation(@RequestParam String email){
         return this.personService.getAllReservation(email);

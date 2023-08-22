@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -33,6 +34,14 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${jwt.get.token.uri}")
     private String authenticationPath;
+    private static final String[] AUTH_WHITELIST = {
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/swagger-ui.css",
+            "/v2/api-docs",
+            "/webjars/**"
+    };
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -41,10 +50,10 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
             .passwordEncoder(new BCryptPasswordEncoder());
     }
 
-    //@Bean
-    //public PasswordEncoder passwordEncoderBean() {
-    //    return new BCryptPasswordEncoder();
-    //}
+    @Bean
+    public PasswordEncoder passwordEncoderBean() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     @Override
@@ -52,24 +61,59 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
+    // cette methode configure demande autorisation pour autres request ( appar eli ba3dhom permitt all et demande token si nn retourne 401)
+
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
+                .authorizeRequests()
+                .antMatchers(AUTH_WHITELIST).permitAll() // Whitelisted endpoints
+                .anyRequest().authenticated() // Require authentication for all other endpoints
+                .and()
+                .httpBasic(); // Use Basic Authentication
+        // ... Other configuration ...
+    }
+
+
+
+
+
+
+  /*  @Override
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+
+        System.out.println("++nadda"+AUTH_WHITELIST);
+        httpSecurity
+                .authorizeRequests()
+                .antMatchers(AUTH_WHITELIST)
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .httpBasic();
+        httpSecurity
+
             .csrf().disable()
+
             .exceptionHandling().authenticationEntryPoint(jwtUnAuthorizedResponseAuthenticationEntryPoint).and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-            .authorizeRequests()
-            .anyRequest().authenticated();
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
 
        httpSecurity
             .addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         httpSecurity
             .headers()
             .frameOptions().sameOrigin()  //H2 Console Needs this setting
             .cacheControl(); //disable caching
-    }
+    }*/
 
+    // logic de cette methode configure hedhi   elli fiha ".ignoring()
+    //            .antMatchers(
+    //                HttpMethod.POST,
+    //                authenticationPath
+    //            )" ennou kif tebda methode authenticate w tebda post ygénéri token w kif kif interface swagger bch tra les api
+// ma3neha ignore t igniori kol mehi authentification
     @Override
     public void configure(WebSecurity webSecurity) throws Exception {
         webSecurity
@@ -78,16 +122,23 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 HttpMethod.POST,
                 authenticationPath
             )
+                .antMatchers(AUTH_WHITELIST)
+
+
+
             .antMatchers(HttpMethod.OPTIONS, "/**")
             .and()
             .ignoring()
+
             .antMatchers(
                 HttpMethod.GET,
                 "/" //Other Stuff You want to Ignore
             )
             .and()
+
             .ignoring()
-            .antMatchers("/h2-console/**/**");//Should not be in Production!
+            .antMatchers("/h2-console/**/**");
+        //Should not be in Production!
     }
 }
 

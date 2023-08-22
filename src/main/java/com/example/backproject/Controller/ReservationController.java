@@ -2,12 +2,16 @@ package com.example.backproject.Controller;
 
 
 import com.example.backproject.Services.ReservationService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
+@RequestMapping(path = "/api")
+@SecurityRequirement(name = "Bearer Authentication")
 
 public class ReservationController {
 
